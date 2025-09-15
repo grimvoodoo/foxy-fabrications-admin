@@ -563,7 +563,7 @@ async fn show_edit_form_with_error(
             let product_display = ProductDisplay {
                 id: product.id.to_hex(),
                 name: product.name,
-                image_url: product.image_url,
+                image_url: normalize_image_url(&product.image_url),
                 price: product.price,
                 quantity: product.quantity,
                 description: product.description,

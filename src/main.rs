@@ -27,12 +27,13 @@ mod handlers {
     pub mod order_processing;
     pub mod product_management;
     pub mod quote_processing;
+    pub mod version;
 }
 
 use auth::MongoAuth;
 use handlers::{
     auth as auth_h, calculator as calc_h, order_processing as op_h, 
-    product_management as pm_h, quote_processing as qp_h,
+    product_management as pm_h, quote_processing as qp_h, version as ver_h,
 };
 use models::{CustomBadgeQuote, Order, Product, User};
 
@@ -47,7 +48,11 @@ async fn debug_log_directories() {
             let mut count = 0;
             while let Some(entry) = entries.next_entry().await.unwrap_or(None) {
                 let name = entry.file_name().to_string_lossy().to_string();
-                let file_type = if entry.file_type().await.unwrap_or_else(|_| std::fs::FileType::from(std::fs::File::open("/dev/null").unwrap().metadata().unwrap())).is_dir() { "[DIR]" } else { "[FILE]" };
+                let file_type = match entry.file_type().await {
+                    Ok(ft) if ft.is_dir() => "[DIR]",
+                    Ok(_) => "[FILE]",
+                    Err(_) => "[UNKNOWN]",
+                };
                 info!("📋 [DEBUG]   {} {}", file_type, name);
                 count += 1;
                 if count > 20 { info!("📋 [DEBUG]   ... (truncated, {} items total)", count); break; }
@@ -70,7 +75,11 @@ async fn debug_log_directories() {
             let mut count = 0;
             while let Some(entry) = entries.next_entry().await.unwrap_or(None) {
                 let name = entry.file_name().to_string_lossy().to_string();
-                let file_type = if entry.file_type().await.unwrap_or_else(|_| std::fs::FileType::from(std::fs::File::open("/dev/null").unwrap().metadata().unwrap())).is_dir() { "[DIR]" } else { "[FILE]" };
+                let file_type = match entry.file_type().await {
+                    Ok(ft) if ft.is_dir() => "[DIR]",
+                    Ok(_) => "[FILE]",
+                    Err(_) => "[UNKNOWN]",
+                };
                 info!("🖼️ [DEBUG]   {} {}", file_type, name);
                 count += 1;
                 if count > 20 { info!("🖼️ [DEBUG]   ... (truncated, {} items total)", count); break; }
@@ -114,6 +123,13 @@ async fn main() -> Result<()> {
     db.run_command(mongodb::bson::doc! {"ping": 1}).await?;
     info!("✅ MongoDB connected successfully");
 
+    // Ensure product-images directory exists
+    if let Err(e) = tokio::fs::create_dir_all("product-images").await {
+        info!("⚠️ Failed to create product-images directory: {}. This may cause upload issues.", e);
+    } else {
+        info!("✅ Product-images directory ready for uploads");
+    }
+    
     // Debug: Log directory contents for troubleshooting
     debug_log_directories().await;
 
@@ -162,14 +178,17 @@ async fn main() -> Result<()> {
         .layer(Extension(badge_quotes_coll))
         .layer(Extension(db.clone()));
 
-    // Public routes (just login)
+    // Public routes (login and info/health)
     let public_routes = Router::new()
         .route("/login", get(auth_h::show_login_form).post(auth_h::handle_login))
-        .route("/logout", get(auth_h::handle_logout));
+        .route("/logout", get(auth_h::handle_logout))
+        .route("/info", get(ver_h::info))
+        .route("/health", get(ver_h::health));
 
-    // Static files
+    // Static files and product images
     let static_routes = Router::new()
-        .nest_service("/static", ServeDir::new("static"));
+        .nest_service("/static", ServeDir::new("static"))
+        .nest_service("/product-images", ServeDir::new("product-images"));
 
     // Main app
     let app = Router::new()

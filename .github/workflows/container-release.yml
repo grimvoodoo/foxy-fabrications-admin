@@ -72,6 +72,13 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=raw,value=${{ needs.create-tag.outputs.new_tag }}
 
+      - name: Update version info
+        run: |
+          # Create version info file with image name, build time, and commit hash
+          echo "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.create-tag.outputs.new_tag }},$(date -u +%Y-%m-%dT%H:%M:%SZ),${{ github.sha }}" > version.txt
+          echo "📝 Version info updated:"
+          cat version.txt
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:

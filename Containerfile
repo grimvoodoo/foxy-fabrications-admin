@@ -25,6 +25,7 @@ COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/foxy-fabricati
 # Copy over web resources like css, templates etc.
 COPY --from=builder /app/static /static
 COPY --from=builder /app/templates /templates
+COPY --from=builder /app/version.txt /version.txt
 
 EXPOSE 3000
 ENTRYPOINT ["./foxy-fabrications-admin"]
