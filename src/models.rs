@@ -171,6 +171,14 @@ pub struct EditProductTemplate {
     pub error_message: String,
 }
 
+/// Template for creating a new product
+#[derive(Template)]
+#[template(path = "create_products.html")]
+pub struct CreateProductTemplate {
+    pub user_state: UserState,
+    pub error: String,
+}
+
 /// Response for product operations (JSON)
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductOperationResponse {

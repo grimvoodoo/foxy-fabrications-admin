@@ -1,7 +1,7 @@
 use askama::Template;
 use axum::{
     Extension,
-    extract::{Form, Path},
+    extract::{Form, Multipart, Path},
     http::StatusCode,
     response::{Html, IntoResponse, Json, Redirect},
 };
@@ -10,11 +10,13 @@ use mongodb::{
     Collection,
     bson::{doc, oid::ObjectId},
 };
+use std::path::Path as StdPath;
+use tokio::fs;
 
 use crate::{
     handlers::auth::AppAuthSession,
     models::{
-        EditProductForm, EditProductTemplate, Product, ProductDisplay, ProductManagementTemplate,
+        CreateProductForm, CreateProductTemplate, EditProductForm, EditProductTemplate, Product, ProductDisplay, ProductManagementTemplate,
         ProductOperationResponse, UserState,
     },
     user_state::extract_user_state,
@@ -83,6 +85,172 @@ pub async fn list_products(
             };
 
             Html(template.render().unwrap()).into_response()
+        }
+    }
+}
+
+/// Show create form for a new product
+pub async fn show_create_form(
+    auth: AppAuthSession,
+) -> impl IntoResponse {
+    let user_state = extract_user_state(&auth);
+
+    // Redirect unauthenticated users to login
+    if !user_state.is_authenticated {
+        return Redirect::to("/login").into_response();
+    }
+
+    // Ensure user is admin
+    if !user_state.is_admin {
+        return (StatusCode::FORBIDDEN, "Access denied - Admin privileges required").into_response();
+    }
+
+    let template = CreateProductTemplate {
+        user_state,
+        error: String::new(),
+    };
+
+    Html(template.render().unwrap()).into_response()
+}
+
+/// Handle product creation
+pub async fn create_product(
+    Extension(collection): Extension<Collection<Product>>,
+    auth: AppAuthSession,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    let user_state = extract_user_state(&auth);
+
+    // Redirect unauthenticated users to login
+    if !user_state.is_authenticated {
+        return Redirect::to("/login").into_response();
+    }
+
+    // Ensure user is admin
+    if !user_state.is_admin {
+        return (StatusCode::FORBIDDEN, "Access denied - Admin privileges required").into_response();
+    }
+
+    // Parse multipart form data
+    let mut name = String::new();
+    let mut price = String::new();
+    let mut quantity = String::new();
+    let mut description = String::new();
+    let mut adoptable = false;
+    let mut image_filename = None;
+
+    while let Some(field) = multipart.next_field().await.unwrap_or(None) {
+        let field_name = field.name().unwrap_or("").to_string();
+        
+        match field_name.as_str() {
+            "name" => {
+                name = field.text().await.unwrap_or_default();
+            }
+            "price" => {
+                price = field.text().await.unwrap_or_default();
+            }
+            "quantity" => {
+                quantity = field.text().await.unwrap_or_default();
+            }
+            "description" => {
+                description = field.text().await.unwrap_or_default();
+            }
+            "adoptable" => {
+                let value = field.text().await.unwrap_or_default();
+                adoptable = value == "true" || value == "on";
+            }
+            "image" => {
+                if let Some(filename) = field.file_name() {
+                    if !filename.is_empty() {
+                        // Capture filename before consuming field
+                        let filename = filename.to_string();
+                        let data = field.bytes().await.unwrap_or_default();
+                        
+                        // Generate unique filename
+                        let extension = StdPath::new(&filename)
+                            .extension()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or("jpg");
+                        let unique_filename = format!("{}.{}", uuid::Uuid::new_v4(), extension);
+                        
+                        // Save file to static directory
+                        let file_path = format!("static/{}", unique_filename);
+                        
+                        match fs::write(&file_path, &data).await {
+                            Ok(_) => {
+                                image_filename = Some(format!("/static/{}", unique_filename));
+                            }
+                            Err(_) => {
+                                return show_create_form_with_error(user_state, "Failed to save image file".to_string()).await;
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Validate required fields
+    if name.trim().is_empty() {
+        return show_create_form_with_error(user_state, "Product name is required".to_string()).await;
+    }
+
+    if price.trim().is_empty() {
+        return show_create_form_with_error(user_state, "Price is required".to_string()).await;
+    }
+
+    if quantity.trim().is_empty() {
+        return show_create_form_with_error(user_state, "Quantity is required".to_string()).await;
+    }
+
+    if description.trim().is_empty() {
+        return show_create_form_with_error(user_state, "Description is required".to_string()).await;
+    }
+
+    if image_filename.is_none() {
+        return show_create_form_with_error(user_state, "Product image is required".to_string()).await;
+    }
+
+    // Create form struct for validation
+    let form = CreateProductForm {
+        name: name.clone(),
+        price: price.clone(),
+        quantity: quantity.clone(),
+        description: description.clone(),
+        adoptable: if adoptable { Some("on".to_string()) } else { None },
+    };
+
+    // Validate using existing validation function
+    let validation_result = validate_create_product_form(&form);
+    if let Err(error_msg) = validation_result {
+        return show_create_form_with_error(user_state, error_msg).await;
+    }
+
+    let (_validated_price, validated_quantity) = validation_result.unwrap();
+
+    // Create new product
+    let new_product = Product {
+        id: ObjectId::new(),
+        name,
+        image_url: image_filename.unwrap(),
+        price,
+        quantity: validated_quantity,
+        description,
+        adoptable,
+    };
+
+    // Insert into database
+    match collection.insert_one(&new_product).await {
+        Ok(_) => {
+            Redirect::to("/products?success=created").into_response()
+        }
+        Err(e) => {
+            show_create_form_with_error(
+                user_state,
+                format!("Database error: {}", e),
+            )
+            .await
         }
     }
 }
@@ -319,6 +487,68 @@ pub fn validate_product_form(form: &EditProductForm) -> Result<(f64, i32), Strin
     }
 
     Ok((price, quantity))
+}
+
+/// Helper function to validate create product form data
+pub fn validate_create_product_form(form: &CreateProductForm) -> Result<(f64, i32), String> {
+    // Validate name
+    if form.name.trim().is_empty() {
+        return Err("Product name cannot be empty".to_string());
+    }
+
+    if form.name.len() > 255 {
+        return Err("Product name must be less than 255 characters".to_string());
+    }
+
+    // Validate price
+    let price = form
+        .price
+        .trim()
+        .parse::<f64>()
+        .map_err(|_| "Price must be a valid number".to_string())?;
+
+    if price < 0.0 {
+        return Err("Price cannot be negative".to_string());
+    }
+
+    if price > 999999.99 {
+        return Err("Price cannot exceed £999,999.99".to_string());
+    }
+
+    // Validate quantity
+    let quantity = form
+        .quantity
+        .trim()
+        .parse::<i32>()
+        .map_err(|_| "Quantity must be a valid number".to_string())?;
+
+    if quantity < 0 {
+        return Err("Quantity cannot be negative".to_string());
+    }
+
+    if quantity > 999999 {
+        return Err("Quantity cannot exceed 999,999".to_string());
+    }
+
+    // Validate description
+    if form.description.len() > 5000 {
+        return Err("Description must be less than 5,000 characters".to_string());
+    }
+
+    Ok((price, quantity))
+}
+
+/// Helper function to show create form with error message
+async fn show_create_form_with_error(
+    user_state: UserState,
+    error_message: String,
+) -> axum::response::Response {
+    let template = CreateProductTemplate {
+        user_state,
+        error: error_message,
+    };
+
+    Html(template.render().unwrap()).into_response()
 }
 
 /// Helper function to show edit form with error message

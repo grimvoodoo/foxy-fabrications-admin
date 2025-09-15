@@ -79,6 +79,7 @@ async fn main() -> Result<()> {
     let protected_admin_routes = Router::new()
         // Product Management Routes
         .route("/products", get(pm_h::list_products))
+        .route("/products/new", get(pm_h::show_create_form).post(pm_h::create_product))
         .route("/products/edit/{id}", get(pm_h::show_edit_form).post(pm_h::update_product))
         .route("/products/delete/{id}", delete(pm_h::delete_product))
         // Order Processing Routes
