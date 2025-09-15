@@ -1,0 +1,245 @@
+{# templates/order_processing.html #}
+{% extends "base.html" %}
+
+{% block title %}Order Processing – Foxy Fabrications{% endblock %}
+
+{% block content %}
+  <section class="order-processing">
+    <div class="processing-header">
+      <h1>Order Processing</h1>
+      <div class="order-filters">
+        <div class="filter-group">
+          <div class="filter-toggle">
+            <label for="showCompleted">
+              <input 
+                type="checkbox" 
+                id="showCompleted" 
+                {% if show_completed %}checked{% endif %}
+                onchange="toggleCompletedOrders(this.checked)">
+              <span>Show Completed Orders</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if success_message != "" %}
+      <div class="message success">
+        {{ success_message }}
+      </div>
+    {% endif %}
+
+    {% if error_message != "" %}
+      <div class="message error">
+        {{ error_message }}
+      </div>
+    {% endif %}
+
+    {% if orders.len() > 0 %}
+    <div class="orders-table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr class="order-row" data-order-id="{{ order.id }}">
+            <td class="order-reference">
+              <strong>{{ order.order_reference }}</strong>
+            </td>
+            <td class="order-customer">
+              <div class="customer-info">
+                <strong>{{ order.customer_name }}</strong>
+                <div class="customer-email">{{ order.customer_email }}</div>
+                <div class="shipping-address">
+                  {{ order.shipping_address.line1 }}<br>
+                  {% if order.shipping_address.line2 != "" %}{{ order.shipping_address.line2 }}<br>{% endif %}
+                  {{ order.shipping_address.city }}, {{ order.shipping_address.postcode }}<br>
+                  {{ order.shipping_address.country }}
+                </div>
+              </div>
+            </td>
+            <td class="order-items">
+              <div class="items-summary">
+                {% for item in order.items %}
+                  <div class="item">
+                    {{ item.quantity }}x 
+                    <a href="http://localhost:3000/items/{{ item.product_id }}"
+                       target="_blank" 
+                       title="View product details (opens in new tab)"
+                       class="product-link">{{ item.product_name }}</a>
+                  </div>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="order-total">
+              <strong>{{ order.formatted_total }}</strong>
+            </td>
+            <td class="order-status">
+              <span class="status-badge {{ order.status_class }}">{{ order.status }}</span>
+            </td>
+            <td class="order-date">
+              {{ order.formatted_created_at }}
+            </td>
+            <td class="order-actions">
+              <div class="status-control">
+                <select 
+                  class="status-select" 
+                  data-order-id="{{ order.id }}"
+                  onchange="updateOrderStatus('{{ order.id }}', this.value)">
+                  <option value="paid" {% if order.status == "paid" %}selected{% endif %}>Paid</option>
+                  <option value="processing" {% if order.status == "processing" %}selected{% endif %}>Processing</option>
+                  <option value="shipped" {% if order.status == "shipped" %}selected{% endif %}>Shipped</option>
+                  <option value="completed" {% if order.status == "completed" %}selected{% endif %}>Completed</option>
+                  <option value="cancelled" {% if order.status == "cancelled" %}selected{% endif %}>Cancelled</option>
+                </select>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if pagination.total_pages > 1 %}
+    <div class="pagination">
+      <div class="pagination-info">
+        {% if pagination.total_items > 0 %}
+        Showing {{ pagination.start_item }} to {{ pagination.end_item }} of {{ pagination.total_items }} orders
+        {% else %}
+        No orders found
+        {% endif %}
+      </div>
+      <div class="pagination-controls">
+        {% if pagination.has_prev %}
+          <a href="?page=1{% if show_completed %}&show_completed=true{% endif %}" 
+             class="pagination-btn">First</a>
+          <a href="?page={{ pagination.current_page - 1 }}{% if show_completed %}&show_completed=true{% endif %}" 
+             class="pagination-btn">Previous</a>
+        {% endif %}
+        
+        <span class="pagination-current">
+          Page {{ pagination.current_page }} of {{ pagination.total_pages }}
+        </span>
+        
+        {% if pagination.has_next %}
+          <a href="?page={{ pagination.current_page + 1 }}{% if show_completed %}&show_completed=true{% endif %}" 
+             class="pagination-btn">Next</a>
+          <a href="?page={{ pagination.total_pages }}{% if show_completed %}&show_completed=true{% endif %}" 
+             class="pagination-btn">Last</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-state-content">
+        <div class="empty-state-icon">📦</div>
+        <h2>No orders found</h2>
+        <p>
+          {% if show_completed %}
+            There are no orders in the system yet.
+          {% else %}
+            There are no active orders to process. 
+            <a href="?show_completed=true">Show completed orders</a> to see all orders.
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <script>
+    // Toggle completed orders filter
+    function toggleCompletedOrders(showCompleted) {
+      const url = new URL(window.location);
+      if (showCompleted) {
+        url.searchParams.set('show_completed', 'true');
+      } else {
+        url.searchParams.delete('show_completed');
+      }
+      url.searchParams.delete('page'); // Reset to first page when toggling filter
+      window.location.href = url.toString();
+    }
+
+    // Update order status
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        const response = await fetch(`/orders/update-status`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `order_id=${encodeURIComponent(orderId)}&status=${encodeURIComponent(newStatus)}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update the status badge in the table
+          const row = document.querySelector(`[data-order-id="${orderId}"]`);
+          if (row) {
+            const statusBadge = row.querySelector('.status-badge');
+            statusBadge.textContent = newStatus;
+            statusBadge.className = `status-badge status-${newStatus}`;
+          }
+
+          // Show success message
+          showMessage(result.message, 'success');
+          
+          // If order was completed and we're not showing completed orders, hide the row
+          if (newStatus === 'completed' && !{{ show_completed|lower }}) {
+            setTimeout(() => {
+              row.style.opacity = '0.5';
+              row.style.pointerEvents = 'none';
+              setTimeout(() => {
+                row.style.display = 'none';
+              }, 300);
+            }, 1000);
+          }
+        } else {
+          showMessage('Error: ' + result.message, 'error');
+          // Reset the select to previous value
+          const select = document.querySelector(`[data-order-id="${orderId}"]`);
+          const statusBadge = row.querySelector('.status-badge');
+          const currentStatus = statusBadge.textContent;
+          select.value = currentStatus;
+        }
+      } catch (error) {
+        showMessage('Error updating order status: ' + error.message, 'error');
+      }
+    }
+
+    // Show notification message
+    function showMessage(message, type) {
+      // Remove existing alerts
+      const existingAlerts = document.querySelectorAll('.message');
+      existingAlerts.forEach(alert => alert.remove());
+
+      // Create new alert
+      const alert = document.createElement('div');
+      alert.className = `message ${type}`;
+      alert.textContent = message;
+
+      // Insert after header
+      const header = document.querySelector('.processing-header');
+      header.insertAdjacentElement('afterend', alert);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+  </script>
+{% endblock %}

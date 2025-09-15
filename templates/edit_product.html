@@ -1,0 +1,124 @@
+{# templates/edit_product.html #}
+{% extends "base.html" %}
+
+{% block title %}Edit Product: {{ product.name }} – Foxy Fabrications{% endblock %}
+
+{% block content %}
+  <div class="create-product-form">
+    <h2>Edit Product: {{ product.name }}</h2>
+    
+    <div style="margin-bottom: 1.5em; text-align: center;">
+      <a href="/products" class="btn" style="background: var(--color-accent); color: var(--color-bg); margin-right: 1em;">← Back to Products</a>
+      <a href="http://localhost:3000/items/{{ product.id }}" class="btn" style="background: var(--color-accent); color: var(--color-bg);" target="_blank">View Product</a>
+    </div>
+
+    {% if error_message != "" %}
+      <div style="color: var(--color-accent); margin-bottom: 1em; padding: 1em; background: rgba(255, 121, 0, 0.1); border-radius: 4px; border: 1px solid rgba(255, 121, 0, 0.3);">{{ error_message }}</div>
+    {% endif %}
+
+    <form method="post" id="editProductForm">
+      <div class="form-group">
+        <label for="name">Product Name *</label>
+        <input 
+          id="name" 
+          type="text" 
+          name="name" 
+          value="{{ product.name }}" 
+          required 
+          maxlength="255">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Price (£) *</label>
+          <input 
+            id="price" 
+            type="number" 
+            name="price" 
+            value="{{ product.price }}" 
+            required 
+            step="0.01" 
+            min="0" 
+            max="999999.99">
+        </div>
+
+        <div class="form-group">
+          <label for="quantity">Quantity *</label>
+          <input 
+            id="quantity" 
+            type="number" 
+            name="quantity" 
+            value="{{ product.quantity }}" 
+            required 
+            min="0" 
+            max="999999">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Current Product Image</label>
+        <div style="text-align: center; padding: 1.5em; border: 2px dashed var(--color-border); border-radius: 6px; background: var(--color-bg); margin: 1em 0;">
+          <img src="{{ product.image_url }}" alt="{{ product.name }}" style="max-width: 300px; max-height: 300px; object-fit: cover; border-radius: 6px; margin-bottom: 1em; box-shadow: 0 4px 8px rgba(0,0,0,0.3);" onerror="this.src='/static/Logo1.png'; this.alt='Image not found';">
+          <p style="margin: 0.5em 0; color: var(--color-text); font-size: 0.9em;"><strong>Image URL:</strong> {{ product.image_url }}</p>
+          <p style="margin: 0; color: var(--color-text-muted); font-size: 0.85em; font-style: italic;">To change the image, please create a new product or contact an administrator</p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea 
+          id="description" 
+          name="description" 
+          rows="6" 
+          maxlength="5000">{{ product.description }}</textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5em;">
+          <span style="color: var(--color-text-muted); font-size: 0.85em;">Maximum 5,000 characters</span>
+          <span style="color: var(--color-text-muted); font-size: 0.85em;">
+            <span id="charCount">0</span>/5,000
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="adoptable" style="display: flex; align-items: flex-start; gap: 0.75em; cursor: pointer;">
+          <input id="adoptable" type="checkbox" name="adoptable" {% if product.adoptable %}checked{% endif %} style="margin-top: 0.125em;">
+          <div>
+            <span style="display: block; margin-bottom: 0.25em;">Mark as Adoptable Item</span>
+            <span style="color: var(--color-text-muted); font-size: 0.85em; font-weight: normal;">Adoptable items will appear in the special adoptables section</span>
+          </div>
+        </label>
+      </div>
+
+      <div style="border-top: 1px solid var(--color-border); padding-top: 2em; margin-top: 2em; text-align: center;">
+        <button type="submit" class="btn" id="saveBtn" style="min-width: 200px;">
+          <span class="btn-text">Save Changes</span>
+          <span class="btn-loading" style="display: none;">Saving...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Simple character counter
+    const descriptionField = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
+
+    function updateCharCount() {
+      const currentLength = descriptionField.value.length;
+      charCount.textContent = currentLength;
+      
+      // Update color based on character count
+      if (currentLength > 4500) {
+        charCount.style.color = 'var(--color-accent)';
+      } else {
+        charCount.style.color = 'var(--color-text-muted)';
+      }
+    }
+
+    // Initialize character count on page load
+    updateCharCount();
+    
+    // Update character count as user types
+    descriptionField.addEventListener('input', updateCharCount);
+  </script>
+{% endblock %}

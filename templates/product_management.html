@@ -1,0 +1,210 @@
+{# templates/product_management.html #}
+{% extends "base.html" %}
+
+{% block title %}Product Management – Foxy Fabrications{% endblock %}
+
+{% block content %}
+  <section class="product-management">
+    <div class="management-header">
+      <h1>Product Management</h1>
+      <div class="management-actions">
+        <a href="/products/new" class="btn btn-primary">Add New Product</a>
+        <a href="/products" class="btn btn-secondary">View Store</a>
+      </div>
+    </div>
+
+    {% if success_message != "" %}
+      <div class="alert alert-success">
+        {{ success_message }}
+      </div>
+    {% endif %}
+
+    {% if error_message != "" %}
+      <div class="alert alert-error">
+        {{ error_message }}
+      </div>
+    {% endif %}
+
+    {% for product in products %}
+      {% if loop.first %}
+      <div class="products-table-container">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+      {% endif %}
+              <tr class="product-row" data-product-id="{{ product.id }}">
+                <td class="product-image">
+                  <img src="{{ product.image_url }}" alt="{{ product.name }}" />
+                </td>
+                <td class="product-name">
+                  <strong>{{ product.name }}</strong>
+                  <div class="product-description">{{ product.description }}</div>
+                </td>
+                <td class="product-price">£{{ product.price }}</td>
+                <td class="product-quantity">
+                  <span class="quantity-badge {% if product.quantity == 0 %}out-of-stock{% elif product.quantity < 5 %}low-stock{% else %}in-stock{% endif %}">
+                    {{ product.quantity }}
+                  </span>
+                </td>
+                <td class="product-type">
+                  {% if product.adoptable %}
+                    <span class="type-badge adoptable">Adoptable</span>
+                  {% else %}
+                    <span class="type-badge product">Product</span>
+                  {% endif %}
+                </td>
+                <td class="product-actions">
+                  <div class="action-buttons">
+                    <a href="/products/edit/{{ product.id }}" class="btn btn-edit" title="Edit Product">
+                      <i class="icon-edit">✎</i> Edit
+                    </a>
+                    <button 
+                      class="btn btn-delete" 
+                      data-product-id="{{ product.id }}"
+                      data-product-name="{{ product.name }}"
+                      title="Delete Product"
+                      onclick="confirmDelete(this)">
+                      <i class="icon-delete">🗑</i> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+      {% if loop.last %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-content">
+          <div class="empty-state-icon">📦</div>
+          <h2>No products found</h2>
+          <p>There are no products in the database yet.</p>
+          <a href="/products/new" class="btn btn-primary">Add Your First Product</a>
+        </div>
+      </div>
+    {% endfor %}
+  </section>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Delete Product</h2>
+        <span class="close" onclick="closeDeleteModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete "<span id="productName"></span>"?</p>
+        <p><strong>This action cannot be undone.</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-delete" id="confirmDeleteBtn">Delete Product</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let productToDelete = null;
+
+    function confirmDelete(button) {
+      const productId = button.getAttribute('data-product-id');
+      const productName = button.getAttribute('data-product-name');
+      
+      productToDelete = productId;
+      document.getElementById('productName').textContent = productName;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      productToDelete = null;
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+      if (productToDelete) {
+        deleteProduct(productToDelete);
+      }
+    };
+
+    async function deleteProduct(productId) {
+      try {
+        const response = await fetch(`/products/delete/${productId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Remove the row from the table
+          const row = document.querySelector(`[data-product-id="${productId}"]`);
+          if (row) {
+            row.remove();
+          }
+          
+          // Show success message
+          showMessage('Product deleted successfully', 'success');
+          
+          // Check if table is empty
+          const remainingRows = document.querySelectorAll('.product-row').length;
+          if (remainingRows === 0) {
+            location.reload(); // Reload to show empty state
+          }
+        } else {
+          showMessage('Error: ' + result.message, 'error');
+        }
+      } catch (error) {
+        showMessage('Error deleting product: ' + error.message, 'error');
+      } finally {
+        closeDeleteModal();
+      }
+    }
+
+    function showMessage(message, type) {
+      // Remove existing alerts
+      const existingAlerts = document.querySelectorAll('.alert');
+      existingAlerts.forEach(alert => alert.remove());
+
+      // Create new alert
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.textContent = message;
+
+      // Insert after header
+      const header = document.querySelector('.management-header');
+      header.insertAdjacentElement('afterend', alert);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('deleteModal');
+      if (event.target == modal) {
+        closeDeleteModal();
+      }
+    };
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeDeleteModal();
+      }
+    });
+  </script>
+{% endblock %}

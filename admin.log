@@ -1,0 +1,96 @@
+warning: unused import: `error`
+  --> src/main.rs:17:15
+   |
+17 | use tracing::{error, info};
+   |               ^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Extension`
+ --> src/handlers/auth.rs:3:5
+  |
+3 |     Extension, Form,
+  |     ^^^^^^^^^
+
+warning: unused imports: `Collection` and `oid::ObjectId`
+  --> src/handlers/auth.rs:9:5
+   |
+9  |     Collection,
+   |     ^^^^^^^^^^
+10 |     bson::{doc, oid::ObjectId},
+   |                 ^^^^^^^^^^^^^
+
+warning: unused imports: `UserState`, `User`, and `hash_password`
+  --> src/handlers/auth.rs:15:23
+   |
+15 |     auth::{MongoAuth, hash_password},
+   |                       ^^^^^^^^^^^^^
+16 |     models::{Credentials, User, UserState, LoginTemplate},
+   |                           ^^^^  ^^^^^^^^^
+
+warning: variant `Other` is never constructed
+  --> src/auth.rs:22:5
+   |
+17 | pub enum AuthError {
+   |          --------- variant in this enum
+...
+22 |     Other(String),
+   |     ^^^^^
+   |
+   = note: `AuthError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `hash_password` is never used
+  --> src/auth.rs:36:14
+   |
+36 | pub async fn hash_password(password: &str) -> String {
+   |              ^^^^^^^^^^^^^
+
+warning: function `validate_credentials` is never used
+  --> src/auth.rs:67:12
+   |
+67 |     pub fn validate_credentials(creds: &Credentials) -> Result<(), String> {
+   |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `build_user_permissions` is never used
+  --> src/auth.rs:78:12
+   |
+78 |     pub fn build_user_permissions(is_admin: bool) -> HashSet<String> {
+   |            ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `build_group_permissions` is never used
+  --> src/auth.rs:87:12
+   |
+87 |     pub fn build_group_permissions() -> HashSet<String> {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `username` and `logged_in` are never read
+  --> src/models.rs:29:9
+   |
+27 | pub struct UserState {
+   |            --------- fields in this struct
+28 |     pub is_authenticated: bool,
+29 |     pub username: String,
+   |         ^^^^^^^^
+30 |     pub is_admin: bool,
+31 |     pub logged_in: bool, // alias for is_authenticated
+   |         ^^^^^^^^^
+   |
+   = note: `UserState` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `next` is never read
+   --> src/models.rs:336:9
+    |
+335 | pub struct LoginTemplate {
+    |            ------------- field in this struct
+336 |     pub next: String,
+    |         ^^^^
+
+warning: `foxy-fabrications-admin` (bin "foxy-fabrications-admin") generated 11 warnings (run `cargo fix --bin "foxy-fabrications-admin"` to apply 4 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running `target/debug/foxy-fabrications-admin`
+[2m2025-09-14T15:11:01.754883Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 🚀 Starting Foxy Fabrications Admin Server
+[2m2025-09-14T15:11:01.838062Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m ✅ MongoDB connected successfully
+[2m2025-09-14T15:11:01.838561Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 🎯 Foxy Fabrications Admin Server running on http://0.0.0.0:3001
+[2m2025-09-14T15:11:01.838575Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 📊 Admin interface available at: http://localhost:3001
+[2m2025-09-14T15:11:01.838581Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 🔐 Login required - admin users only

@@ -1,0 +1,250 @@
+name: Commit
+on:
+  push:
+
+permissions:
+  contents: read
+  actions: read
+  
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: testuser
+          MONGO_INITDB_ROOT_PASSWORD: testpass
+          MONGO_INITDB_DATABASE: foxy_admin_test
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --username testuser --password testpass --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+      
+      - name: Cache cargo target
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+      
+      - name: Build project
+        run: cargo build --verbose
+      
+      - name: Wait for MongoDB to be ready
+        run: |
+          timeout 60s bash -c 'until docker exec $(docker ps -q -f "ancestor=mongo:7") mongosh --username testuser --password testpass --authenticationDatabase admin --eval "db.adminCommand(\"ping\")"; do sleep 2; done'
+      
+      - name: Run unit tests
+        run: cargo test --verbose --lib
+        env:
+          MONGODB_URI: mongodb://testuser:testpass@localhost:27017/foxy_admin_test?authSource=admin
+          MONGODB_CONTAINER_AVAILABLE: true
+
+  integration-tests:
+    name: Run Integration Tests with MongoDB
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: testuser
+          MONGO_INITDB_ROOT_PASSWORD: testpass
+          MONGO_INITDB_DATABASE: foxy_admin_test
+        ports:
+          - 27018:27017
+        options: >-
+          --health-cmd "mongosh --username testuser --password testpass --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+      
+      - name: Cache cargo target
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+      
+      - name: Build project
+        run: cargo build --verbose
+      
+      - name: Wait for MongoDB to be ready
+        run: |
+          timeout 60s bash -c 'until docker exec $(docker ps -q -f "ancestor=mongo:7") mongosh --username testuser --password testpass --authenticationDatabase admin --eval "db.adminCommand(\"ping\")"; do sleep 2; done'
+      
+      - name: Run integration tests
+        run: |
+          # Set environment variable to indicate MongoDB is available
+          export MONGODB_CONTAINER_AVAILABLE=true
+          cargo test --test "*" --verbose
+        env:
+          MONGODB_URI: mongodb://testuser:testpass@localhost:27018/foxy_admin_test?authSource=admin
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+      
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+      
+      - name: Run cargo audit
+        run: cargo audit
+
+  trivy-scan:
+    name: Trivy Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t foxy-fabrications-admin:${{ github.sha }} -f Containerfile .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: foxy-fabrications-admin:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+      
+      - name: Run Trivy filesystem scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+
+  sonarqube:
+    name: SonarQube with Full Coverage
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        env:
+          MONGO_INITDB_ROOT_USERNAME: testuser
+          MONGO_INITDB_ROOT_PASSWORD: testpass
+          MONGO_INITDB_DATABASE: foxy_admin_test
+        ports:
+          - 27018:27017
+        options: >-
+          --health-cmd "mongosh --username testuser --password testpass --authenticationDatabase admin --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+      
+      - name: Cache cargo target
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-target-
+      
+      - name: Install dependencies
+        run: cargo build --verbose
+      
+      - name: Wait for MongoDB to be ready
+        run: |
+          timeout 60s bash -c 'until docker exec $(docker ps -q -f "ancestor=mongo:7") mongosh --username testuser --password testpass --authenticationDatabase admin --eval "db.adminCommand(\"ping\")"; do sleep 2; done'
+      
+      - name: Run tests with coverage (including MongoDB integration tests)
+        run: |
+          cargo install cargo-llvm-cov || true
+          # Run all tests including MongoDB integration tests for comprehensive coverage
+          export MONGODB_CONTAINER_AVAILABLE=true
+          cargo llvm-cov --lcov --output-path coverage.lcov -- --test-threads=1
+        env:
+          MONGODB_URI: mongodb://testuser:testpass@localhost:27018/foxy_admin_test?authSource=admin
+      
+      - name: Upload coverage to SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=grimvoodoo_foxy-fabrications-admin
+            -Dsonar.sources=src
+            -Dsonar.tests=tests
+            -Dsonar.exclusions=tests/**,**/*test*.rs,**/test_*.rs
+            -Dsonar.coverage.exclusions=tests/**,**/*test*.rs,**/test_*.rs,src/main.rs
+            -Dsonar.test.inclusions=tests/**/*.rs,**/*test*.rs,**/test_*.rs
+            -Dsonar.rust.lcov.reportPaths=coverage.lcov

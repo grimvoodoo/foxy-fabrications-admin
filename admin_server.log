@@ -1,0 +1,179 @@
+nohup: ignoring input
+warning: unused import: `permission_required`
+ --> src/main.rs:9:5
+  |
+9 |     permission_required, tower_sessions::{MemoryStore, SessionManagerLayer}, AuthManagerLayerBuilder,
+  |     ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `error`
+  --> src/main.rs:17:15
+   |
+17 | use tracing::{error, info};
+   |               ^^^^^
+
+warning: unused import: `Extension`
+ --> src/handlers/auth.rs:3:5
+  |
+3 |     Extension, Form,
+  |     ^^^^^^^^^
+
+warning: unused imports: `Collection` and `oid::ObjectId`
+  --> src/handlers/auth.rs:9:5
+   |
+9  |     Collection,
+   |     ^^^^^^^^^^
+10 |     bson::{doc, oid::ObjectId},
+   |                 ^^^^^^^^^^^^^
+
+warning: unused imports: `UserState`, `User`, and `hash_password`
+  --> src/handlers/auth.rs:15:23
+   |
+15 |     auth::{MongoAuth, hash_password},
+   |                       ^^^^^^^^^^^^^
+16 |     models::{Credentials, User, UserState, LoginTemplate},
+   |                           ^^^^  ^^^^^^^^^
+
+warning: unused import: `warn`
+  --> src/handlers/order_processing.rs:14:21
+   |
+14 | use tracing::{info, warn, error};
+   |                     ^^^^
+
+warning: variant `Other` is never constructed
+  --> src/auth.rs:22:5
+   |
+17 | pub enum AuthError {
+   |          --------- variant in this enum
+...
+22 |     Other(String),
+   |     ^^^^^
+   |
+   = note: `AuthError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `hash_password` is never used
+  --> src/auth.rs:36:14
+   |
+36 | pub async fn hash_password(password: &str) -> String {
+   |              ^^^^^^^^^^^^^
+
+warning: function `validate_credentials` is never used
+  --> src/auth.rs:67:12
+   |
+67 |     pub fn validate_credentials(creds: &Credentials) -> Result<(), String> {
+   |            ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `build_user_permissions` is never used
+  --> src/auth.rs:78:12
+   |
+78 |     pub fn build_user_permissions(is_admin: bool) -> HashSet<String> {
+   |            ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `build_group_permissions` is never used
+  --> src/auth.rs:87:12
+   |
+87 |     pub fn build_group_permissions() -> HashSet<String> {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: fields `username` and `logged_in` are never read
+  --> src/models.rs:29:9
+   |
+27 | pub struct UserState {
+   |            --------- fields in this struct
+28 |     pub is_authenticated: bool,
+29 |     pub username: String,
+   |         ^^^^^^^^
+30 |     pub is_admin: bool,
+31 |     pub logged_in: bool, // alias for is_authenticated
+   |         ^^^^^^^^^
+   |
+   = note: `UserState` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: field `next` is never read
+   --> src/models.rs:337:9
+    |
+336 | pub struct LoginTemplate {
+    |            ------------- field in this struct
+337 |     pub next: String,
+    |         ^^^^
+
+warning: `foxy-fabrications-admin` (bin "foxy-fabrications-admin") generated 13 warnings (run `cargo fix --bin "foxy-fabrications-admin"` to apply 6 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running `target/debug/foxy-fabrications-admin`
+[2m2025-09-14T15:59:30.426069Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 🚀 Starting Foxy Fabrications Admin Server
+[2m2025-09-14T15:59:30.498422Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m ✅ MongoDB connected successfully
+[2m2025-09-14T15:59:30.498905Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 🎯 Foxy Fabrications Admin Server running on http://0.0.0.0:3001
+[2m2025-09-14T15:59:30.498924Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 📊 Admin interface available at: http://localhost:3001
+[2m2025-09-14T15:59:30.498933Z[0m [32m INFO[0m [2mfoxy_fabrications_admin[0m[2m:[0m 🔐 Login required - admin users only
+[2m2025-09-14T16:00:01.553337Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:01.553406Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({"status": Document({"$in": Array([String("pending"), String("failed"), String("cancelled")])})})
+[2m2025-09-14T16:00:01.555603Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:01.555644Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:01.555668Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({"status": Document({"$in": Array([String("paid"), String("processing"), String("shipped")])})})
+[2m2025-09-14T16:00:01.557697Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 2 raw documents in completed_orders collection
+[2m2025-09-14T16:00:01.557728Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 0: Document({"_id": ObjectId("68bb59ad9d0072f10dc2f4c2"), "order_reference": String("FOX522185"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("9f4f298c-a336-46d7-8914-e2c7707ca134"), "sumup_transaction_id": Null, "status": String("paid"), "created_at": String("2025-09-05T21:43:35.525831661+00:00"), "updated_at": String("2025-09-05T21:44:13.475812168+00:00")})
+[2m2025-09-14T16:00:01.557756Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 1: Document({"_id": ObjectId("68c6dbad0a0fe0aa2f4dfeef"), "order_reference": String("FOX001000"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("7a6cde81-b124-4504-915e-55e247740961"), "sumup_transaction_id": Null, "status": String("paid"), "created_at": String("2025-09-14T15:12:50.517082693+00:00"), "updated_at": String("2025-09-14T15:13:49.212109498+00:00")})
+[2m2025-09-14T16:00:01.557842Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 2 orders from completed_orders collection
+[2m2025-09-14T16:00:01.557848Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX522185 - Status: paid
+[2m2025-09-14T16:00:01.557853Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX001000 - Status: paid
+[2m2025-09-14T16:00:01.557864Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 2, show_completed: false
+[2m2025-09-14T16:00:13.973630Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:13.973679Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({})
+[2m2025-09-14T16:00:13.975941Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:13.975992Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:13.976009Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({})
+[2m2025-09-14T16:00:13.977727Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 2 raw documents in completed_orders collection
+[2m2025-09-14T16:00:13.977754Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 0: Document({"_id": ObjectId("68bb59ad9d0072f10dc2f4c2"), "order_reference": String("FOX522185"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("9f4f298c-a336-46d7-8914-e2c7707ca134"), "sumup_transaction_id": Null, "status": String("paid"), "created_at": String("2025-09-05T21:43:35.525831661+00:00"), "updated_at": String("2025-09-05T21:44:13.475812168+00:00")})
+[2m2025-09-14T16:00:13.977787Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 1: Document({"_id": ObjectId("68c6dbad0a0fe0aa2f4dfeef"), "order_reference": String("FOX001000"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("7a6cde81-b124-4504-915e-55e247740961"), "sumup_transaction_id": Null, "status": String("completed"), "created_at": String("2025-09-14T15:12:50.517082693+00:00"), "updated_at": String("2025-09-14T16:00:10.147220563+00:00")})
+[2m2025-09-14T16:00:13.977870Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 2 orders from completed_orders collection
+[2m2025-09-14T16:00:13.977877Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX522185 - Status: paid
+[2m2025-09-14T16:00:13.977881Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX001000 - Status: completed
+[2m2025-09-14T16:00:13.977890Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 2, show_completed: true
+[2m2025-09-14T16:00:15.192237Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:15.192322Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({"status": Document({"$in": Array([String("pending"), String("failed"), String("cancelled")])})})
+[2m2025-09-14T16:00:15.194881Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:15.194927Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:15.194952Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({"status": Document({"$in": Array([String("paid"), String("processing"), String("shipped")])})})
+[2m2025-09-14T16:00:15.196813Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 1 raw documents in completed_orders collection
+[2m2025-09-14T16:00:15.196839Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 0: Document({"_id": ObjectId("68bb59ad9d0072f10dc2f4c2"), "order_reference": String("FOX522185"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("9f4f298c-a336-46d7-8914-e2c7707ca134"), "sumup_transaction_id": Null, "status": String("paid"), "created_at": String("2025-09-05T21:43:35.525831661+00:00"), "updated_at": String("2025-09-05T21:44:13.475812168+00:00")})
+[2m2025-09-14T16:00:15.196997Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 1 orders from completed_orders collection
+[2m2025-09-14T16:00:15.197043Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX522185 - Status: paid
+[2m2025-09-14T16:00:15.197065Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 1, show_completed: false
+[2m2025-09-14T16:00:21.583240Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:21.583300Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({"status": Document({"$in": Array([String("pending"), String("failed"), String("cancelled")])})})
+[2m2025-09-14T16:00:21.585910Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:21.585953Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:21.585978Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({"status": Document({"$in": Array([String("paid"), String("processing"), String("shipped")])})})
+[2m2025-09-14T16:00:21.588021Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in completed_orders collection
+[2m2025-09-14T16:00:21.588052Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from completed_orders collection
+[2m2025-09-14T16:00:21.588075Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 0, show_completed: false
+[2m2025-09-14T16:00:22.866999Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:22.867031Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({})
+[2m2025-09-14T16:00:22.869223Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:22.869277Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:22.869298Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({})
+[2m2025-09-14T16:00:22.871253Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 2 raw documents in completed_orders collection
+[2m2025-09-14T16:00:22.871277Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 0: Document({"_id": ObjectId("68bb59ad9d0072f10dc2f4c2"), "order_reference": String("FOX522185"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("9f4f298c-a336-46d7-8914-e2c7707ca134"), "sumup_transaction_id": Null, "status": String("cancelled"), "created_at": String("2025-09-05T21:43:35.525831661+00:00"), "updated_at": String("2025-09-14T16:00:18.709344876+00:00")})
+[2m2025-09-14T16:00:22.871315Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Raw completed doc 1: Document({"_id": ObjectId("68c6dbad0a0fe0aa2f4dfeef"), "order_reference": String("FOX001000"), "customer_name": String("Andrew Cleveland"), "customer_email": String("andrew.cleveland@hotmail.co.uk"), "shipping_address": Document({"line1": String("14 Firethorn Drive"), "line2": String(""), "city": String("Hyde"), "postcode": String("SK14 3SN"), "country": String("United Kingdom")}), "items": Array([Document({"product_id": String("687843edb4c54757bc9765e4"), "name": String("Hugs Welcome Keyring"), "price": Double(5.99), "quantity": Int32(1), "line_total": Double(5.99)})]), "subtotal": Double(5.99), "shipping_cost": Double(3.0), "total": Double(8.99), "currency": String("GBP"), "sumup_checkout_id": String("7a6cde81-b124-4504-915e-55e247740961"), "sumup_transaction_id": Null, "status": String("completed"), "created_at": String("2025-09-14T15:12:50.517082693+00:00"), "updated_at": String("2025-09-14T16:00:10.147220563+00:00")})
+[2m2025-09-14T16:00:22.871405Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 2 orders from completed_orders collection
+[2m2025-09-14T16:00:22.871413Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX522185 - Status: cancelled
+[2m2025-09-14T16:00:22.871420Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Completed Order: FOX001000 - Status: completed
+[2m2025-09-14T16:00:22.871431Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 2, show_completed: true
+[2m2025-09-14T16:00:25.056061Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:25.056129Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({"status": Document({"$in": Array([String("pending"), String("failed"), String("cancelled")])})})
+[2m2025-09-14T16:00:25.058801Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:25.058844Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:25.058867Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({"status": Document({"$in": Array([String("paid"), String("processing"), String("shipped")])})})
+[2m2025-09-14T16:00:25.061006Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in completed_orders collection
+[2m2025-09-14T16:00:25.061035Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from completed_orders collection
+[2m2025-09-14T16:00:25.061044Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 0, show_completed: false
+[2m2025-09-14T16:00:38.317313Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Connecting to database: foxy_fabrications, main orders collection: orders, completed collection: completed_orders
+[2m2025-09-14T16:00:38.317377Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying main orders collection with filter: Document({"status": Document({"$in": Array([String("pending"), String("failed"), String("cancelled")])})})
+[2m2025-09-14T16:00:38.319353Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in main orders collection
+[2m2025-09-14T16:00:38.319396Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from main collection
+[2m2025-09-14T16:00:38.319418Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Querying completed_orders collection with filter: Document({"status": Document({"$in": Array([String("paid"), String("processing"), String("shipped")])})})
+[2m2025-09-14T16:00:38.321395Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Found 0 raw documents in completed_orders collection
+[2m2025-09-14T16:00:38.321416Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Successfully deserialized 0 orders from completed_orders collection
+[2m2025-09-14T16:00:38.321425Z[0m [32m INFO[0m [2mfoxy_fabrications_admin::handlers::order_processing[0m[2m:[0m Total combined orders: 0, show_completed: false

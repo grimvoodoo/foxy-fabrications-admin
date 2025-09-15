@@ -1,0 +1,355 @@
+/* styles.css */
+
+/* ─── Custom Font ─────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'AniMeMatrix';
+  src: url('/static/AniMeMatrix-MB_EN.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ─── Color Palette ───────────────────────────────────────────────────────── */
+:root {
+  --color-bg: #0c0c0c;           /* very dark background */
+  --color-surface: #1a1a1a;      /* slightly lighter panels */
+  --color-accent: #ff7900;       /* vibrant orange */
+  --color-text: #f5f5f5;         /* off-white text */
+  --color-text-muted: #999999;   /* for secondary text */
+  --color-border: #333333;       /* subtle borders */
+  --transition: 0.3s ease;
+}
+
+/* ─── Global Reset & Base ─────────────────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* ─── Links & Buttons ─────────────────────────────────────────────────────── */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+a:hover {
+  color: #ffa34d;
+}
+
+button, .btn {
+  display: inline-block;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  padding: 0.75em 1.5em;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+button:hover, .btn:hover {
+  background: #e26c00;
+}
+
+/* ─── Header & Navigation ────────────────────────────────────────────────── */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface);
+  padding: 1em 2em;
+}
+
+/* Brand title on left */
+.brand {
+  font-family: 'AniMeMatrix', sans-serif;
+  font-size: 3rem;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+/* Logo icon on right */
+.logo-icon {
+  width: 100px;
+  height: auto;
+}
+
+/* Shrink header on mobile */
+@media (max-width: 600px) {
+  header {
+    padding: 0.5em 1em;
+  }
+
+  /* shrink the brand text */
+  .brand {
+    font-size: 1.2rem;    /* down from 1.8rem */
+    white-space: nowrap;  /* keep it on one line */
+  }
+
+  /* shrink the logo icon */
+  .logo-icon {
+    width: 30px;          /* down from 40px */
+    height: auto;
+  }
+}
+
+/* ─── Nav ─────────────────────────────────────────────────────────────────── */
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1.5em;
+}
+nav a {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* ─── Hero / Intro ───────────────────────────────────────────────────────── */
+.hero {
+  padding: 4em 2em;
+  text-align: center;
+}
+.hero h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5em;
+}
+.hero p {
+  color: var(--color-text-muted);
+  margin-bottom: 1.5em;
+}
+
+/* ─── Category Bar ───────────────────────────────────────────────────────── */
+.category-bar {
+  background: var(--color-accent);
+  padding: 0.5em 2em;
+}
+.category-bar ul {
+  list-style: none;
+  display: flex;
+  gap: 1.5em;
+  justify-content: center;
+}
+.category-bar a {
+  color: var(--color-bg);
+  font-weight: 600;
+}
+
+/* ─── Feature / Icon Section ─────────────────────────────────────────────── */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2em;
+  padding: 3em 2em;
+  background: var(--color-surface);
+}
+.feature {
+  text-align: center;
+}
+.feature svg {
+  width: 48px;
+  height: 48px;
+  fill: var(--color-accent);
+  margin-bottom: 0.5em;
+}
+.feature p {
+  font-size: 0.95rem;
+}
+
+/* ─── Carousel ───────────────────────────────────────────────────────────── */
+.carousel {
+  position: relative;
+  max-width: 900px;
+  margin: 3em auto;
+  overflow: hidden;
+}
+.carousel-container {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+.carousel-slide {
+  min-width: 100%;
+  position: relative;
+}
+.carousel-slide img {
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+}
+.carousel-slide .caption {
+  position: absolute;
+  bottom: 1em;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  padding: 0.5em 1em;
+  border-radius: 4px;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-accent);
+  border: none;
+  color: var(--color-bg);
+  font-size: 2rem;
+  padding: 0.25em 0.6em;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity var(--transition);
+}
+.carousel-btn:hover {
+  opacity: 1;
+}
+.carousel-btn.prev { left: 1em; }
+.carousel-btn.next { right: 1em; }
+
+/* ─── FAQ Accordion ──────────────────────────────────────────────────────── */
+.faq {
+  padding: 3em 2em;
+}
+.faq-item + .faq-item {
+  margin-top: 1em;
+}
+.faq-question {
+  background: var(--color-surface);
+  padding: 1em;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: var(--color-bg);
+  padding: 0 1em;
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.faq-item.open .faq-answer {
+  max-height: 500px; /* enough to show your content */
+  padding: 1em;
+}
+
+/* ─── Contact Form ───────────────────────────────────────────────────────── */
+.contact {
+  padding: 3em 2em;
+  background: var(--color-surface);
+}
+.contact form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+}
+.contact textarea {
+  grid-column: 1 / -1;
+  height: 150px;
+  resize: vertical;
+}
+.contact input,
+.contact textarea {
+  background: #1f1f1f;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  padding: 0.75em;
+  border-radius: 4px;
+}
+.contact label {
+  font-size: 0.9rem;
+  margin-bottom: 0.25em;
+  display: block;
+}
+.contact .submit {
+  grid-column: 2 / 3;
+  justify-self: end;
+}
+
+/* ─── Products ─────────────────────────────────────────────────────────────── */
+.product-list {
+  padding: 2em 1em;
+}
+
+.product-list h2 {
+  color: var(--color-accent);
+  text-align: center;
+  margin-bottom: 1em;
+}
+
+.products {
+  display: grid;
+  /* two even columns */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  /* optional: center within a max-width container */
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* On small viewports, switch to a single column */
+@media (max-width: 600px) {
+  .products {
+    grid-template-columns: 1fr;
+  }
+}
+
+.product-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+.product-card img {
+  width: 100%;
+  max-width: 100vw;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.product-card h3 {
+  margin: 0.75em 0 0.25em;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.product-card .price {
+  color: var(--color-accent);
+  margin: 0 1em 1em;
+  font-weight: bold;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────── */
+/* Make header text & icon shrink on narrow screens */
+footer {
+  background: var(--color-surface);
+  padding: 2em;
+  text-align: center;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--color-border);
+}
+footer a {
+  color: var(--color-text-muted);
+  margin: 0 0.5em;
+}
+

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>3D Print Calculator - Foxy Fabrications</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/script.js" defer></script>
+  </head>
+  <body class="dark-theme">
+    {% include "header.html" %}
+
+    <main class="create-product-form">
+      <h2>3D Print Cost Calculator</h2>
+
+      <div class="form-group">
+        <label for="material_cost">Material Cost</label>
+        <input id="material_cost" type="number" placeholder="e.g. 5.50" />
+      </div>
+
+      <div class="form-group">
+        <label for="print_time">Print Time (hrs)</label>
+        <input id="print_time" type="number" step="0.01" placeholder="e.g. 2.5" />
+      </div>
+
+      <div class="form-group">
+        <label for="design_time">Design Time (hrs)</label>
+        <input id="design_time" type="number" step="0.01" placeholder="e.g. 1.0" />
+      </div>
+
+      <div class="form-group">
+        <strong>Mates rate:</strong> £<span id="mates">0.00</span><br>
+        <strong>Moderate rate:</strong> £<span id="moderate">0.00</span><br>
+        <strong>High rate:</strong> £<span id="high">0.00</span>
+      </div>
+
+      <hr style="margin: 2em 0; border: 1px solid var(--color-border);" />
+
+      <button id="toggle-custom-rates" class="btn" style="margin-bottom: 1em;">Show Custom Rates</button>
+
+      <div id="custom-rates-section">
+        <h3 style="color: var(--color-accent); text-align: center;">Custom Rates (£ per hrs)</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mates_print">Mates Print Rate</label>
+            <input id="mates_print" type="number" step="0.01" value="1.0" />
+          </div>
+          <div class="form-group">
+            <label for="mates_design">Mates Design Rate</label>
+            <input id="mates_design" type="number" step="0.01" value="6.0" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="moderate_print">Moderate Print Rate</label>
+            <input id="moderate_print" type="number" step="0.01" value="2.0" />
+          </div>
+          <div class="form-group">
+            <label for="moderate_design">Moderate Design Rate</label>
+            <input id="moderate_design" type="number" step="0.01" value="9.0" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="high_print">High Print Rate</label>
+            <input id="high_print" type="number" step="0.01" value="3.0" />
+          </div>
+          <div class="form-group">
+            <label for="high_design">High Design Rate</label>
+            <input id="high_design" type="number" step="0.01" value="12.0" />
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Foxy Fabrications UK</p>
+    </footer>
+
+    <script type="module">
+      import init, {calculate_rates} from "/static/pkg/foxyfabrications_cost_calculator.js";
+
+      async function main() {
+        await init();
+
+        function parseSafeFloat(id, fallback = 0.0) {
+          const el = document.getElementById(id);
+          if (!el) return fallback;
+          const val = parseFloat(el.value);
+          return isNaN(val) ? fallback : val;
+        }
+
+        function update() {
+          const material = parseSafeFloat("material_cost");
+          const print = parseSafeFloat("print_time");
+          const design = parseSafeFloat("design_time");
+
+          const mates = {
+            print_rate: parseSafeFloat("mates_print", 1.0),
+            design_rate: parseSafeFloat("mates_design", 6.0),
+          };
+          const moderate = {
+            print_rate: parseSafeFloat("moderate_print", 2.0),
+            design_rate: parseSafeFloat("moderate_design", 9.0),
+          };
+          const high = {
+            print_rate: parseSafeFloat("high_print", 3.0),
+            design_rate: parseSafeFloat("high_design", 12.0),
+          };
+
+          const result = calculate_rates(material, print, design, mates, moderate, high);
+          document.getElementById("mates").textContent = result.mates.toFixed(2);
+          document.getElementById("moderate").textContent = result.moderate.toFixed(2);
+          document.getElementById("high").textContent = result.high.toFixed(2);
+        }
+
+        [
+          "material_cost", "print_time", "design_time",
+          "mates_print", "mates_design",
+          "moderate_print", "moderate_design",
+          "high_print", "high_design"
+        ].forEach(id => {
+          document.getElementById(id).addEventListener("input", update);
+        });
+
+        update(); // run once initially
+      }
+
+      const toggleBtn = document.getElementById("toggle-custom-rates");
+      const customRatesSection = document.getElementById("custom-rates-section");
+
+      toggleBtn.addEventListener("click", () => {
+        const isHidden = customRatesSection.style.display === "none";
+        customRatesSection.style.display = isHidden ? "block" : "none";
+        toggleBtn.textContent = isHidden ? "Hide Custom Rates" : "Show Custom Rates";
+      });
+
+      main();
+    </script>
+  </body>
+</html>

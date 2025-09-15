@@ -1,1 +1,5 @@
 /target
+.env
+static/uploads
+coverage
+private_uploads

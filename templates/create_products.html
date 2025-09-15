@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Product – Foxy Fabrications{% endblock %}
+
+{% block content %}
+  <div class="create-product-form">
+    <h2>Create New Product</h2>
+    {% if error != "" %}
+      <div class="error" style="color: var(--color-accent); margin-bottom:1em;">{{ error }}</div>
+    {% endif %}
+    <form action="/products/new" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" type="text" name="name" required />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Price (£)</label>
+          <input id="price" type="text" name="price" required />
+        </div>
+
+        <div class="form-group">
+          <label for="quantity">Quantity</label>
+          <input id="quantity" type="number" name="quantity" min="1" value="1" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="image">Image</label>
+        <input id="image" type="file" name="image" accept="image/*" required />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="adoptable">
+          <input id="adoptable" type="checkbox" name="adoptable", value="true" checked />
+	  <span class="adoptable-label">Adoptable?</span>
+	</label>
+      </div>
+
+      <button type="submit" class="btn">Submit</button>
+    </form>
+  </div>
+{% endblock %}
+

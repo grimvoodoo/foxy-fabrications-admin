@@ -1,0 +1,31 @@
+<header>
+  <div class="header-left">
+    <a href="http://localhost:3000/" target="_blank">
+      <h1 class="brand">Foxy Fabrications UK</h1>
+    </a>
+  </div>
+  <div class="header-right">
+    <a href="http://localhost:3000/" target="_blank">
+      <img src="/static/Logo1.png" alt="Logo" class="logo-icon"/>
+    </a>
+  </div>
+</header>
+<nav class="category-bar">
+  <ul>
+    <li><a href="http://localhost:3000/" target="_blank">Home</a></li>
+    <li><a href="http://localhost:3000/products" target="_blank">Products</a></li>
+    <li><a href="http://localhost:3000/adoptables" target="_blank">Adoptables</a></li>
+    <li><a href="http://localhost:3000/custom-badge" target="_blank">Custom Badge</a></li>
+    <li><a href="http://localhost:3000/contact" target="_blank">Contact Us</a></li>
+    <li><a href="http://localhost:3000/cart" target="_blank">Cart</a></li>
+    {% if user_state.is_admin %}
+      <li class="admin-divider">|</li>
+      <li><a href="/products" class="admin-link">Manage Products</a></li>
+      <li><a href="/orders" class="admin-link">Process Orders</a></li>
+      <li><a href="/quotes" class="admin-link">Process Quotes</a></li>
+      <li><a href="/calculator" class="admin-link">Calculator</a></li>
+      <li><a href="/logout" class="admin-link">Logout</a></li>
+    {% endif %}
+  </ul>
+</nav>
+

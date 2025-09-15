@@ -1,0 +1,105 @@
+{# templates/login.html #}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Login – Foxy Fabrications</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/script.js" defer></script>
+    <style>
+      /* center the form */
+      .login-container {
+        max-width: 400px;
+        margin: 4em auto;
+        background: var(--color-surface);
+        padding: 2em;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+      }
+      .login-container h2 {
+        color: var(--color-accent);
+        text-align: center;
+        margin-bottom: 1.5em;
+        font-family: 'AniMeMatrix', sans-serif;
+      }
+      .login-container .form-group {
+        margin-bottom: 1.25em;
+      }
+      .login-container label {
+        display: block;
+        margin-bottom: 0.5em;
+        font-weight: 500;
+      }
+      .login-container input {
+        width: 100%;
+        padding: 0.75em;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        background: #1f1f1f;
+        color: var(--color-text);
+      }
+      .login-container .btn {
+        width: 100%;
+        padding: 0.75em;
+        font-size: 1rem;
+      }
+      .login-container .error {
+        color: #ff4d4f;
+        font-size: 0.9rem;
+        margin-bottom: 1em;
+        text-align: center;
+      }
+      .signup-link {
+        text-align: center;
+        margin-top: 1.5em;
+        padding-top: 1em;
+        border-top: 1px solid var(--color-border);
+      }
+      .signup-link a {
+        color: var(--color-accent);
+        text-decoration: none;
+      }
+      .signup-link a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body class="dark-theme">
+    {% include "header.html" %}
+
+    <main>
+      <div class="login-container">
+        <h2>Member Login</h2>
+        {% if error != "" %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+        <form action="/login{% if next_url != "" %}?next={{ next_url }}{% endif %}" method="post">
+          {% if next_url != "" %}
+            <input type="hidden" name="next" value="{{ next_url }}" />
+          {% endif %}
+          <div class="form-group">
+            <label for="username">Email Address</label>
+            <input id="username" name="username" type="text" required autofocus />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required />
+          </div>
+          <button type="submit" class="btn">Log In</button>
+        </form>
+        <div class="signup-link">
+          <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Foxy Fabrications UK</p>
+    </footer>
+  </body>
+</html>
+

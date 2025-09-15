@@ -1,0 +1,305 @@
+{# templates/quote_processing.html #}
+{% extends "base.html" %}
+
+{% block title %}Quote Processing – Foxy Fabrications{% endblock %}
+
+{% block content %}
+  <section class="order-processing quote-processing">
+    <div class="processing-header">
+      <h1>Custom Badge Quote Processing</h1>
+      <div class="order-filters">
+        <div class="filter-group">
+          <label for="statusFilter">Filter by status:</label>
+          <select id="statusFilter" onchange="filterByStatus(this.value)" class="status-select">
+            <option value="all" {% if status_filter == "all" %}selected{% endif %}>All Quotes</option>
+            <option value="pending" {% if status_filter == "pending" %}selected{% endif %}>Pending</option>
+            <option value="quoted" {% if status_filter == "quoted" %}selected{% endif %}>Quoted</option>
+            <option value="accepted" {% if status_filter == "accepted" %}selected{% endif %}>Accepted</option>
+            <option value="completed" {% if status_filter == "completed" %}selected{% endif %}>Completed</option>
+            <option value="cancelled" {% if status_filter == "cancelled" %}selected{% endif %}>Cancelled</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    {% if success_message != "" %}
+      <div class="message success">
+        {{ success_message }}
+      </div>
+    {% endif %}
+
+    {% if error_message != "" %}
+      <div class="message error">
+        {{ error_message }}
+      </div>
+    {% endif %}
+
+    {% if quotes.len() > 0 %}
+    <div class="orders-table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Quote #</th>
+            <th>Customer Email</th>
+            <th>Badge Specifications</th>
+            <th>Image</th>
+            <th>Estimated Price</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for quote in quotes %}
+          <tr class="quote-row" data-quote-id="{{ quote.id }}">
+            <td class="quote-id">
+              <strong>#{{ quote.id|truncate(length=8) }}</strong>
+            </td>
+            <td class="quote-customer">
+              <div class="customer-info">
+                <strong>{{ quote.email }}</strong>
+              </div>
+            </td>
+            <td class="quote-specs">
+              <div class="specs-summary">
+                <div class="spec-item">
+                  <strong>Colors:</strong> {{ quote.num_colors }}
+                </div>
+                <div class="spec-item">
+                  <strong>Size:</strong> {{ quote.print_size }}
+                </div>
+                <div class="spec-item">
+                  <strong>Thickness:</strong> {{ quote.thickness }}
+                </div>
+                <div class="spec-item">
+                  <strong>Type:</strong> {{ quote.sided_text }}
+                </div>
+              </div>
+            </td>
+            <td class="quote-image">
+              {% match quote.image_path %}
+                {% when Some with (filename) %}
+                <div class="image-preview">
+                  <img src="/quotes/image/{{ filename }}" alt="Badge preview" class="image-thumbnail" />
+                  <a href="/quotes/image/{{ filename }}" target="_blank" class="btn btn-sm">View Full Size</a>
+                </div>
+                {% when None %}
+                <span class="text-muted">No image uploaded</span>
+              {% endmatch %}
+            </td>
+            <td class="quote-price">
+              <strong>{{ quote.formatted_price }}</strong>
+            </td>
+            <td class="quote-status">
+              <span class="status-badge status-{{ quote.status }}">{{ quote.status }}</span>
+            </td>
+            <td class="quote-date">
+              {{ quote.formatted_created_at }}
+            </td>
+            <td class="quote-actions">
+              <div class="status-control">
+                <select 
+                  class="status-select" 
+                  data-quote-id="{{ quote.id }}"
+                  onchange="updateQuoteStatus('{{ quote.id }}', this.value)">
+                  <option value="pending" {% if quote.status == "pending" %}selected{% endif %}>Pending</option>
+                  <option value="quoted" {% if quote.status == "quoted" %}selected{% endif %}>Quoted</option>
+                  <option value="accepted" {% if quote.status == "accepted" %}selected{% endif %}>Accepted</option>
+                  <option value="completed" {% if quote.status == "completed" %}selected{% endif %}>Completed</option>
+                  <option value="cancelled" {% if quote.status == "cancelled" %}selected{% endif %}>Cancelled</option>
+                </select>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if pagination.total_pages > 1 %}
+    <div class="pagination">
+      <div class="pagination-info">
+        {% if pagination.total_items > 0 %}
+        Showing {{ pagination.start_item }} to {{ pagination.end_item }} of {{ pagination.total_items }} quotes
+        {% else %}
+        No quotes found
+        {% endif %}
+      </div>
+      <div class="pagination-controls">
+        {% if pagination.has_prev %}
+          <a href="?page=1{% if status_filter != "all" %}&status_filter={{ status_filter }}{% endif %}" 
+             class="pagination-btn">First</a>
+          <a href="?page={{ pagination.current_page - 1 }}{% if status_filter != "all" %}&status_filter={{ status_filter }}{% endif %}" 
+             class="pagination-btn">Previous</a>
+        {% endif %}
+        
+        <span class="pagination-current">
+          Page {{ pagination.current_page }} of {{ pagination.total_pages }}
+        </span>
+        
+        {% if pagination.has_next %}
+          <a href="?page={{ pagination.current_page + 1 }}{% if status_filter != "all" %}&status_filter={{ status_filter }}{% endif %}" 
+             class="pagination-btn">Next</a>
+          <a href="?page={{ pagination.total_pages }}{% if status_filter != "all" %}&status_filter={{ status_filter }}{% endif %}" 
+             class="pagination-btn">Last</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-state-content">
+        <div class="empty-state-icon">🎨</div>
+        <h2>No quotes found</h2>
+        <p>
+          {% if status_filter == "all" %}
+            There are no custom badge quotes in the system yet.
+          {% else %}
+            There are no {{ status_filter }} quotes. 
+            <a href="?status_filter=all">Show all quotes</a> to see quotes with different statuses.
+          {% endif %}
+        </p>
+        <p>
+          When customers submit custom badge requests through the 
+          <a href="/custom-badge" target="_blank">custom badge form</a>, 
+          they will appear here for processing.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <style>
+    /* Quote Processing Specific Styles */
+    .quote-processing .quote-specs {
+      font-size: 0.9em;
+    }
+
+    .quote-processing .spec-item {
+      margin-bottom: 0.25em;
+    }
+
+    .quote-processing .spec-item strong {
+      color: var(--color-text-muted);
+      min-width: 70px;
+      display: inline-block;
+    }
+
+    .quote-processing .image-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      align-items: center;
+    }
+
+    .quote-processing .image-thumbnail {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 2px solid var(--color-border);
+      background-color: var(--color-surface);
+      transition: transform 0.2s ease;
+    }
+
+    .quote-processing .image-thumbnail:hover {
+      transform: scale(1.1);
+      border-color: var(--color-accent);
+    }
+
+    .quote-processing .quote-price strong {
+      color: #28a745;
+      font-size: 1.1em;
+    }
+
+    /* Status badge styles that match the existing pattern */
+    .status-pending { background-color: #ffc107; color: #000; }
+    .status-quoted { background-color: #17a2b8; color: white; }
+    .status-accepted { background-color: #28a745; color: white; }
+    .status-completed { background-color: #6f42c1; color: white; }
+    .status-cancelled { background-color: #dc3545; color: white; }
+    .status-unknown { background-color: #6c757d; color: white; }
+  </style>
+
+  <script>
+    // Filter quotes by status
+    function filterByStatus(statusFilter) {
+      const url = new URL(window.location);
+      if (statusFilter === 'all') {
+        url.searchParams.delete('status_filter');
+      } else {
+        url.searchParams.set('status_filter', statusFilter);
+      }
+      url.searchParams.delete('page'); // Reset to first page when filtering
+      window.location.href = url.toString();
+    }
+
+    // Update quote status
+    async function updateQuoteStatus(quoteId, newStatus) {
+      try {
+        const response = await fetch(`/quotes/update-status`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `quote_id=${encodeURIComponent(quoteId)}&status=${encodeURIComponent(newStatus)}`
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Update the status badge in the table
+          const row = document.querySelector(`tr[data-quote-id="${quoteId}"]`);
+          if (row) {
+            const statusBadge = row.querySelector('.status-badge');
+            statusBadge.textContent = newStatus;
+            statusBadge.className = `status-badge status-${newStatus}`;
+          }
+
+          // Show success message
+          showMessage(result.message, 'success');
+          
+          // If filtering by status and quote no longer matches, fade out the row
+          const currentFilter = new URL(window.location).searchParams.get('status_filter') || 'all';
+          if (currentFilter !== 'all' && currentFilter !== newStatus) {
+            if (row) {
+              row.style.opacity = '0.5';
+              setTimeout(() => {
+                row.style.display = 'none';
+              }, 1000);
+            }
+          }
+        } else {
+          showMessage(result.message, 'error');
+        }
+      } catch (error) {
+        console.error('Error updating quote status:', error);
+        showMessage('Failed to update quote status. Please try again.', 'error');
+      }
+    }
+
+    // Show success/error messages
+    function showMessage(message, type) {
+      // Remove existing alerts
+      const existingAlerts = document.querySelectorAll('.message');
+      existingAlerts.forEach(alert => alert.remove());
+
+      // Create new alert
+      const alert = document.createElement('div');
+      alert.className = `message ${type}`;
+      alert.textContent = message;
+
+      // Insert after header
+      const header = document.querySelector('.processing-header');
+      header.insertAdjacentElement('afterend', alert);
+
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+  </script>
+{% endblock %}
