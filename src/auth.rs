@@ -1,6 +1,6 @@
 use argon2::{
     Argon2,
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
+    password_hash::{PasswordHash, PasswordVerifier},
 };
 use async_trait::async_trait;
 use std::{collections::HashSet, future::Future, pin::Pin};
@@ -17,9 +17,6 @@ use crate::models::{Credentials, User};
 pub enum AuthError {
     #[error("database error: {0}")]
     Database(#[from] mongodb::error::Error),
-
-    #[error("internal error: {0}")]
-    Other(String),
 }
 
 impl AuthUser for User {
@@ -29,23 +26,6 @@ impl AuthUser for User {
     }
     fn session_auth_hash(&self) -> &[u8] {
         self.password_hash.as_bytes()
-    }
-}
-
-/// Argon2‐based password hashing & verifying
-pub async fn hash_password(password: &str) -> String {
-    let salt = SaltString::generate(&mut OsRng);
-    match Argon2::default().hash_password(password.as_bytes(), &salt) {
-        Ok(hash) => hash.to_string(),
-        Err(_) => {
-            // Fallback in case of hashing error (extremely rare)
-            // Use a simpler salt generation
-            let fallback_salt = SaltString::generate(&mut OsRng);
-            Argon2::default()
-                .hash_password(password.as_bytes(), &fallback_salt)
-                .map(|h| h.to_string())
-                .unwrap_or_else(|_| "$argon2id$error$hash".to_string())
-        }
     }
 }
 
@@ -59,35 +39,6 @@ pub async fn verify_password(submitted: &str, stored_hash: &str) -> bool {
         .is_ok()
 }
 
-/// Authentication logic helpers (testable synchronous functions)
-pub mod auth_helpers {
-    use super::*;
-
-    /// Validate credentials format (synchronous helper)
-    pub fn validate_credentials(creds: &Credentials) -> Result<(), String> {
-        if creds.username.trim().is_empty() {
-            return Err("Username cannot be empty".to_string());
-        }
-        if creds.password.is_empty() {
-            return Err("Password cannot be empty".to_string());
-        }
-        Ok(())
-    }
-
-    /// Build user permissions based on admin status (synchronous helper)
-    pub fn build_user_permissions(is_admin: bool) -> HashSet<String> {
-        let mut perms = HashSet::new();
-        if is_admin {
-            perms.insert("admin".into());
-        }
-        perms
-    }
-
-    /// Build group permissions (always empty) (synchronous helper)
-    pub fn build_group_permissions() -> HashSet<String> {
-        HashSet::new()
-    }
-}
 
 /// Your Mongo‐backed auth manager
 #[derive(Clone)]

@@ -173,12 +173,12 @@ pub async fn create_product(
                             .unwrap_or("jpg");
                         let unique_filename = format!("{}.{}", uuid::Uuid::new_v4(), extension);
                         
-                        // Save file to static directory
-                        let file_path = format!("static/{}", unique_filename);
+                        // Save file to product-images directory
+                        let file_path = format!("product-images/{}", unique_filename);
                         
                         match fs::write(&file_path, &data).await {
                             Ok(_) => {
-                                image_filename = Some(format!("/static/{}", unique_filename));
+                                image_filename = Some(format!("/product-images/{}", unique_filename));
                             }
                             Err(_) => {
                                 return show_create_form_with_error(user_state, "Failed to save image file".to_string()).await;

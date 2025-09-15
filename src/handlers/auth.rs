@@ -1,19 +1,15 @@
 use askama::Template;
 use axum::{
-    Extension, Form,
+    Form,
     extract::Query,
     response::{Html, IntoResponse, Redirect},
 };
 use axum_login::AuthSession;
-use mongodb::{
-    Collection,
-    bson::{doc, oid::ObjectId},
-};
 use serde::Deserialize;
 
 use crate::{
-    auth::{MongoAuth, hash_password},
-    models::{Credentials, User, UserState, LoginTemplate},
+    auth::MongoAuth,
+    models::{Credentials, LoginTemplate},
     user_state::extract_user_state,
 };
 
@@ -51,7 +47,6 @@ pub async fn show_login_form(
     Html(
         LoginTemplate {
             error: "".into(),
-            next: next_url.clone(),
             next_url,
             user_state,
         }
@@ -75,7 +70,6 @@ pub async fn handle_login(
                 let user_state = extract_user_state(&auth);
                 let tpl = LoginTemplate {
                     error: "Internal error".into(),
-                    next: next_url.clone(),
                     next_url,
                     user_state,
                 };
@@ -90,7 +84,6 @@ pub async fn handle_login(
             Html(
                 LoginTemplate {
                     error: "Bad credentials".into(),
-                    next: next_url.clone(),
                     next_url,
                     user_state,
                 }
@@ -104,7 +97,6 @@ pub async fn handle_login(
             Html(
                 LoginTemplate {
                     error: "Server error".into(),
-                    next: next_url.clone(),
                     next_url,
                     user_state,
                 }

@@ -26,17 +26,13 @@ pub struct Credentials {
 #[derive(Debug, Clone, Default)]
 pub struct UserState {
     pub is_authenticated: bool,
-    pub username: String,
     pub is_admin: bool,
-    pub logged_in: bool, // alias for is_authenticated
 }
 
 impl UserState {
-    pub fn new(is_authenticated: bool, username: String, is_admin: bool) -> Self {
+    pub fn new(is_authenticated: bool, _username: String, is_admin: bool) -> Self {
         Self {
             is_authenticated,
-            logged_in: is_authenticated, // Keep both for template compatibility
-            username,
             is_admin,
         }
     }
@@ -342,8 +338,7 @@ pub struct CalculatorTemplate {
 #[derive(Template)]
 #[template(path = "login.html")]
 pub struct LoginTemplate {
-    pub next: String,
-    pub next_url: String, // alias for next
+    pub next_url: String,
     pub error: String,
     pub user_state: UserState,
 }

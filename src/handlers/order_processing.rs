@@ -11,7 +11,7 @@ use mongodb::{
     Collection,
     bson::{doc, oid::ObjectId},
 };
-use tracing::{info, warn, error};
+use tracing::{info, error};
 
 use crate::{
     handlers::auth::AppAuthSession,

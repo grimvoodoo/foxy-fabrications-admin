@@ -6,7 +6,7 @@ use axum::{
     Extension, Router,
 };
 use axum_login::{
-    permission_required, tower_sessions::{MemoryStore, SessionManagerLayer}, AuthManagerLayerBuilder,
+    tower_sessions::{MemoryStore, SessionManagerLayer}, AuthManagerLayerBuilder,
 };
 use dotenv::dotenv;
 use mongodb::{Client, Collection};
@@ -14,7 +14,7 @@ use std::env;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeDir;
-use tracing::{error, info};
+use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // Import modules
@@ -35,6 +35,59 @@ use handlers::{
     product_management as pm_h, quote_processing as qp_h,
 };
 use models::{CustomBadgeQuote, Order, Product, User};
+
+/// Debug function to log directory contents at startup
+async fn debug_log_directories() {
+    info!("🔍 [DEBUG] Checking directory mounts...");
+    
+    // Check /static directory (built-in files)
+    match tokio::fs::read_dir("/static").await {
+        Ok(mut entries) => {
+            info!("📋 [DEBUG] Contents of /static directory (built-in):");
+            let mut count = 0;
+            while let Some(entry) = entries.next_entry().await.unwrap_or(None) {
+                let name = entry.file_name().to_string_lossy().to_string();
+                let file_type = if entry.file_type().await.unwrap_or_else(|_| std::fs::FileType::from(std::fs::File::open("/dev/null").unwrap().metadata().unwrap())).is_dir() { "[DIR]" } else { "[FILE]" };
+                info!("📋 [DEBUG]   {} {}", file_type, name);
+                count += 1;
+                if count > 20 { info!("📋 [DEBUG]   ... (truncated, {} items total)", count); break; }
+            }
+            if count == 0 {
+                info!("⚠️ [DEBUG] /static directory is empty!");
+            } else {
+                info!("✅ [DEBUG] /static directory contains {} items", count);
+            }
+        }
+        Err(e) => {
+            info!("❌ [DEBUG] Cannot read /static directory: {}", e);
+        }
+    }
+    
+    // Check /product-images directory (NFS mounted)
+    match tokio::fs::read_dir("/product-images").await {
+        Ok(mut entries) => {
+            info!("🖼️ [DEBUG] Contents of /product-images directory (NFS mounted):");
+            let mut count = 0;
+            while let Some(entry) = entries.next_entry().await.unwrap_or(None) {
+                let name = entry.file_name().to_string_lossy().to_string();
+                let file_type = if entry.file_type().await.unwrap_or_else(|_| std::fs::FileType::from(std::fs::File::open("/dev/null").unwrap().metadata().unwrap())).is_dir() { "[DIR]" } else { "[FILE]" };
+                info!("🖼️ [DEBUG]   {} {}", file_type, name);
+                count += 1;
+                if count > 20 { info!("🖼️ [DEBUG]   ... (truncated, {} items total)", count); break; }
+            }
+            if count == 0 {
+                info!("🖼️ [DEBUG] /product-images directory is empty (ready for uploads)");
+            } else {
+                info!("✅ [DEBUG] /product-images directory contains {} items", count);
+            }
+        }
+        Err(e) => {
+            info!("❌ [DEBUG] Cannot read /product-images directory: {} - Check NFS mount!", e);
+        }
+    }
+    
+    info!("✅ [DEBUG] Directory check complete");
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -60,6 +113,9 @@ async fn main() -> Result<()> {
     // Test MongoDB connection
     db.run_command(mongodb::bson::doc! {"ping": 1}).await?;
     info!("✅ MongoDB connected successfully");
+
+    // Debug: Log directory contents for troubleshooting
+    debug_log_directories().await;
 
     // Collections
     let users_coll: Collection<User> = db.collection("users");
